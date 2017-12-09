@@ -31,19 +31,22 @@ The details for these components can be found in the contents section below.
 
 The complete project should include the following files: 
 
-### 1. Raw Data
+### 1. README.md
 
-The raw data is stored in the data folder and contains compressed file globalterrorismdb_0617dist.csv.
-The data for this project come from this source: <https://www.start.umd.edu/gtd/> 
+This file
 
-### 2. app.r 
+### 2. Reproducible Pitch-rpubs.hmtl
+
+Contains the HTML created by Rstudio Rpresenter that was published to Rpubs
+
+### 3. Reproducible Pitch.Rpresenter
+
+Contains the markup for reproducible pitch
+
+### 4. app.r 
 
 This code contains the shiny application UI and Server components.  The application contains an input panel where
 the user can enter in summarization choice (yearly, monthly or none) and a date range.  When Apply button is pressed
 the Shiny application uses those selection to scatterplot the activity and intensity of recorded terrorist activities based
 on the date range selected.  If a plot point is clicked then a bar chart is produced to show distribution of intensity 
 based on number of killed, wounded and property damage.
-
-### 3. README.md
-
-This file
