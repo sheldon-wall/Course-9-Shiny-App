@@ -1,0 +1,114 @@
+Reproducible Pitch - Shiny GTD Exploration
+========================================================
+author: Sheldon Wall
+date: Dec. 7, 2017
+autosize: true
+transition: rotate
+width: 1440
+height: 900
+font-family: 'Helvetica'
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(plotly)
+library(lubridate)
+library(dplyr)
+library(countrycode)
+library(knitr)
+```
+Overview
+========================================================
+
+## This presentation is requried for the last assignment for Developing Data Products Course in Coursera's Data Science Specialization  
+### The assignment is meant to demonstrate:
+- Shiny application development using input values to create output
+- Presentation material created through R-presenter
+
+### The following links can be used to view the shiny application and source code.
+- Application Link: <https://sdwall.shinyapps.io/Course-9-Project-4/>
+- Source Link: <https://github.com/sheldon-wall/Course-9-Shiny-App>
+
+The Data
+========================================================
+## This application uses the Global Terrorism Database (GTD), sourced from <http://start.umd.edu/gtd/>.
+
+## Characteristics of the GTD
+- Over 170,000 terrorist attacks since 1970 and most comprehensive unclassified database on terrorist events in the world
+- Includes info on 83,000 bombings, 18,000 assassinations, and 11,000 kidnappings with more than 120 variables
+- Over 4,000,000 news articles and 25,000 news sources reviewed
+
+```{r Load and Prepare, echo = FALSE, cache=TRUE, warning=FALSE}
+
+## read the terrorism file
+dataDir <- "./data" 
+filename <- file.path(dataDir, "globalterrorismdb_0617dist.csv")
+terror_activity <- read.csv(filename,na.strings = c("NA","#DIV/0!",""))
+
+## clean up missing values
+terror_activity$nkill[is.na(terror_activity$nkill)] <- 0
+terror_activity$nwound[is.na(terror_activity$nwound)] <- 0
+terror_activity$propextent[is.na(terror_activity$propextent)] <- 0
+
+## create a subset relevant information for plotting 
+terror_subset <- 
+  terror_activity %>% 
+  mutate(event_date = ymd(eventid / 10000)) %>%
+  mutate(intensity = (nkill * 10) + (nwound * 5) + 
+         ((4 - if_else (terror_activity$propextent == 0, 4,terror_activity$propextent)) * 10 )) %>% 
+  mutate(intensity_color = ifelse(intensity <= 20, "green", 
+         ifelse(intensity <= 2000, "organge", "red"))) %>%
+  mutate(country_iso3 = countrycode(country_txt, "country.name", "iso3c")) %>%
+  filter(nkill > 0 | nwound > 0 | propextent > 0) %>%
+  select(event_date, intensity, country_iso3, attacktype1_txt, targtype1_txt, nkill, nwound, propextent_txt) %>%
+  filter(!is.na(event_date))
+
+kable(head(terror_subset,3))
+
+```
+
+The Application (Shiny with Plot_ly)
+========================================================
+
+This application has been developed to :
+- Plot the average intensity (y1 axis) and frequency (y2 axix) of terrorist attacks
+- Calculate those values summarized by: year, month, date (no summarization)
+- Select a date range for event selection
+
+Additionally when a plot marker is clicked the application displays a bar chart that contains the distribution of the intensity of the attack by
+- Number Killed
+- Number Wounded
+- Property Damage
+
+The Output (Shiny with Plot_ly)
+========================================================
+
+### The main plot (sample below) displays intensity (log) and frequency on two y-axis.  An additional barchart is displayed when a marker is clicked.  
+```{r plotly,  fig.width=7, fig.height=5.5,  warning=FALSE, echo=FALSE}
+
+## create a summary of average intensity and frequency by month
+terror_datesum <- 
+  terror_subset %>%
+  mutate(event_date= format(event_date, "%Y-%m")) %>%
+  group_by(event_date) %>%
+  summarise(avg_int = mean(intensity), n = n())
+
+m <- list(l = 50, r = 70, b = 120, t = 70, pad = 0) 
+
+ay <- list(
+  tickfont = list(color = "red"),
+  overlaying = "y",
+  side = "right",
+  title = "Event Frequency"
+)
+
+p <- plot_ly(terror_datesum, x = ~event_date) %>%
+  add_markers(y = ~n, name = "avg freqency", yaxis = "y2") %>%
+  add_markers(y = ~avg_int, name = "avg intensity", type = 'bar') %>%
+   layout(title = 'Compare avg monthly intensity and frequency of terrorist events 1970-2016',
+     margin = m, xaxis = list(title = 'Event Date'),
+         yaxis = list(title = 'Intensity (log)', type = 'log'),
+         yaxis2 = ay, 
+         legend = list(x = 0.10, y = 0.90))
+```
+### Sample Plot
+![Plotly sample](plot_ly.png)
