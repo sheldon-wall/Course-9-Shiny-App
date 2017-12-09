@@ -50,3 +50,8 @@ the user can enter in summarization choice (yearly, monthly or none) and a date 
 the Shiny application uses those selection to scatterplot the activity and intensity of recorded terrorist activities based
 on the date range selected.  If a plot point is clicked then a bar chart is produced to show distribution of intensity 
 based on number of killed, wounded and property damage.
+
+### 5. plot_ly.PNG
+
+Imbedding the sample output to be incorporated into the presentation.  This is due to the fact that Rpreseenter does not 
+display Plot_ly (although it does work correctly in IO slides.
